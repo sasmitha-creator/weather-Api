@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Information</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            text-align: center;
+            margin: 0;
+            padding: 40px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #064273;
+            font-size: 32px;
+        }
+
+        hr {
+            border: 1px solid white;
+            margin-bottom: 30px;
+        }
+
+        input {
+            padding: 12px;
+            width: 230px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #087CA7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #064273;
+        }
+
+        #result {
+            background-color: white;
+            width: 300px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            color: #064273;
+        }
+
+        #result h2 {
+            color: #087CA7;
+        }
+
+        #result p {
+            font-size: 16px;
+            padding: 5px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>🌤️ Weather Information</h1>
+
+    <hr>
+
+    <input type="text" id="city" placeholder="Enter a city name">
+
+    <br>
+
+    <button onclick="get()">GetData</button>
+
+    <div id="result"></div>
+
+    <script>
+
+        function get() {
+
+            let place = document.getElementById("city").value;
+
+            if (place.trim() == "") {
+                document.getElementById("result").innerHTML =
+                    "<p>Please enter a city name</p>";
+                return;
+            }
+
+            fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(place) + "&count=5&language=en&format=json")
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                if (!data.results || data.results.length == 0) {
+                    document.getElementById("result").innerHTML =
+                        "<h2>City Not Found</h2>";
+                    return;
+                }
+
+                let longitude = data.results[0].longitude;
+                let latitude = data.results[0].latitude;
+
+                weather_details(longitude, latitude);
+
+            })
+
+            .catch(error => {
+                document.getElementById("result").innerHTML =
+                    "<p>Error fetching city details</p>";
+                console.log(error);
+            });
+
+        }
+
+        function weather_details(lo, la) {
+
+            fetch("https://api.open-meteo.com/v1/forecast?latitude=" + la + "&longitude=" + lo + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code")
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                let weather = data.current;
+
+                document.getElementById("result").innerHTML =
+
+                    "<h2>🌤️ Weather Details</h2>" +
+
+                    "<p>🌡️ Temperature: " +
+                    weather.temperature_2m + " °C</p>" +
+
+                    "<p>💧 Humidity: " +
+                    weather.relative_humidity_2m + " %</p>" +
+
+                    "<p>🌡️ Feels Like: " +
+                    weather.apparent_temperature + " °C</p>" +
+
+                    "<p>☁️ Weather Code: " +
+                    weather.weather_code + "</p>";
+
+            })
+
+            .catch(error => {
+                document.getElementById("result").innerHTML =
+                    "<p>Error fetching weather details</p>";
+                console.log(error);
+            });
+
+        }
+
+    </script>
+
+</body>
+</html>
